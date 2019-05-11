@@ -10,7 +10,7 @@ from flask import Flask, jsonify
 #################################################
 # Database Setup
 #################################################
-engine = create_engine("sqlite:///OneDrive/Documents/GitHub/Adv_SQL/Resources/hawaii.sqlite")
+engine = create_engine("sqlite:///Resources/hawaii.sqlite")
 
 # reflect an existing database into a new model
 Base = automap_base()
@@ -34,20 +34,19 @@ app = Flask(__name__)
 # Flask Routes
 #################################################
 
-# @app.route("/")
-# def home_page():
-#     """List all available api routes."""
-#     return (
-#         f"Available Routes:<br/>"
-#         f"/api/v1.0/names<br/>"
-#         f"/api/v1.0/passengers"
-#     )
+@app.route("/")
+def home_page():
+    """List all available api routes."""
+    return (
+       '<a href="http://127.0.01:5000/api/v1.0/stations">Stations</a><br/>'
+       '<a href="http://127.0.01:5000/api/v1.0/precipitation">Precipitation</a><br/>'
+       '<a href="http://127.0.01:5000/api/v1.0/tobs">Temperature</a><br/>'
+    )
 
 
 @app.route("/api/v1.0/precipitation")
 def precipitation():
-    """Return a list of all passenger names"""
-    # Query all passengers
+    
     precipitation_results = (session.query(Measurement.date, Measurement.prcp)
          .order_by(Measurement.date.desc())
          .all())
@@ -55,17 +54,17 @@ def precipitation():
     # Convert list of tuples into normal list
     precipitation_list = list(precipitation_results)
 
-    return jsonify(precipitation_results)
+    return jsonify(precipitation_list)
 
 
 @app.route("/api/v1.0/stations")
 def stations():
-    """Return a list of passenger data including the name, age, and sex of each passenger"""
-    # Query all passengers
+  
+ 
     station_results = session.query(Station.station, Station.name, 
               Station.latitude,Station.longitude,Station.elevation).all()
 
-    # Create a dictionary from the row data and append to a list of all_passengers
+  
     all_stations = []
     for station, name, latitude, longitude, elevation in station_results:
         station_dict = {}
@@ -76,9 +75,22 @@ def stations():
         station_dict["elevation"] = elevation
 
 
-        all_stations.append(station_dic)
+        all_stations.append(station_dict)
 
     return jsonify(all_stations)
+
+@app.route("/api/v1.0/tobs")
+def tobs():
+    """Return a list of all passenger names"""
+    # Query all Temperature Observations for the most recent year of recorded data. 
+    latest_temp_data = (session.query(Measurement.date, Measurement.tobs)
+         .filter(Measurement.date <= '2017-08-23', Measurement.date >= '2016-08-23')
+         .all())
+
+    # Convert list of tuples into normal list
+    latest_temp_list = list(latest_temp_data)
+
+    return jsonify(latest_temp_list)
 
 
 if __name__ == '__main__':
